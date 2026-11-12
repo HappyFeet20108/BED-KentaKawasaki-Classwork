@@ -56,8 +56,8 @@ app.get("/author/:id", async (req, res) => {
     const request = connection.request();
     request.input("id", authorId);
     const sqlQuery = `SELECT AuthorID, Name
-                      FROM Author
-                      WHERE AuthorID = @id`;
+      FROM Author 
+      WHERE AuthorID = @id`;
     const result = await request.query(sqlQuery);
     if (result.recordset.length === 0) {
       return res.status(400).json({error: "Not found"});
