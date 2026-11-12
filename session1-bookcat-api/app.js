@@ -115,6 +115,24 @@ app.put("/authors/:id", async (req, res) => {
   }
 });
 
+app.delete("/authors/:id", async (req, res) => {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const request = connection.request(req.params.id);
+    const sqlQuery = `DELETE FROM Author WHERE AuthorID = @id`;
+    const result = await request.query(sqlQuery);
+    if (result.rowsAffected[0] === 0){
+      return res.status(404).json({error: "Not found"})
+    }
+    res.status(204).send();
+  } catch (err) {
+    res.status(500).json({error: "Database error"});
+  } finally {
+    if (connection) await connection.close();
+  }
+})
+
 app.post("/echo/:id", async (req, res) => {
   console.log("params: ", req.params);
   console.log("query: ", req.query);
