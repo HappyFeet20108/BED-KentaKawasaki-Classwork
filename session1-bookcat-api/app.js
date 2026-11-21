@@ -1,10 +1,11 @@
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 const express = require("express");
-const app = express();
-
 const sql = require("mssql");
+
+const app = express();
 app.use(express.json());
 
-const process = require("dotenv").config();
 const dbConfig = {
   server: process.env.DB_SERVER,
   database: process.env.DB_NAME,
@@ -34,15 +35,16 @@ app.get("/publishers", async (req, res) => {
 app.get("/publishers/:id", async (req, res) => {
   const publisherId = parseInt(req.params.id);
   if (isNaN(publisherId)) {
-    return res.status(400).json({error: "Invalid id"})
+    return res.status(400).json({ error: "Invalid id" });
   }
   let connection;
   try {
     connection = await sql.connect(dbConfig);
-    const result = await connection.request().input('id', publisherId).query("SELECT PublisherID, Name FROM Publisher WHERE PublisherID = @id");
-    if (result.rowsAffected[0] === 0){
-      return res.status(404).json({error: 'Not Found'});
-    }
+    const result = await connection
+      .request()
+      .input("id", sql.Int, publisherId)
+      .query("SELECT PublisherID, Name FROM Publisher WHERE PublisherID = @id");
+
     if (result.recordset.length === 0) {
       return res.status(404).json({ error: "Not Found" });
     }
