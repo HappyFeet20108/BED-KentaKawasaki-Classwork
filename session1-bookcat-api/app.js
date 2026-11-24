@@ -57,6 +57,39 @@ app.get("/publishers/:id", async (req, res) => {
   }
 });
 
+app.post("/publishers", async (req, res) => {
+  const { publisherId, name } = req.body;
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    await connection.request()
+    .input("publisherId", sql.SmallInt, publisherId)
+    .input("name", sql.VarChar(50), name)
+    .query("INSERT INTO Publisher (PublisherID, Name) VALUES (@publisherId, @name)");
+    res.status(201).json(req.body);
+  } finally {
+    if (connection) await connection.close();
+  }
+})
+
+app.delete("/publishers/:id", async (req, res) => {
+  let connection;
+  try {
+    connection = await sql.connect(dbConfig);
+    const request = connection.request();
+    request.input("id", parseInt(req.params.id));
+    const sqlQuery = "DELETE FROM Publisher WHERE PublisherID = @id";
+    const result = await request.query(sqlQuery);
+    if (result.rowsAffected[0] === 0){
+      return res.status(404).json({error: "Not found"});
+    } res.status(204).send();
+  } catch (err) {
+    res.status(500).json({error: "Database error"});
+  } finally {
+    if (connection) await connection.close();
+  }
+})
+
 app.post("/echo/:id", async (req, res) => {
   console.log("params: ", req.params);
   console.log("query: ", req.query);
